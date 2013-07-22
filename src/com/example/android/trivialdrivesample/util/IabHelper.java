@@ -256,7 +256,7 @@ public class IabHelper {
             }
         };
         
-        Intent serviceIntent = new Intent("com.android.vending.billing.InAppBillingService.BIND");
+        Intent serviceIntent = new Intent("ir.cafebazaar.pardakht.InAppBillingService.BIND");
         if (!mContext.getPackageManager().queryIntentServices(serviceIntent, 0).isEmpty()) {
             // service available to handle that Intent
             mContext.bindService(serviceIntent, mServiceConn, Context.BIND_AUTO_CREATE);

@@ -24,7 +24,7 @@
         android:targetSdkVersion="15" />
 
     <!-- VERY IMPORTANT! Don't forget this permission, or in-app billing won't work. -->
-    <uses-permission android:name="com.android.vending.BILLING" />
+		<uses-permission android:name="com.farsitel.bazaar.permission.PAY_THROUGH_BAZAAR" />
 
     <application
         android:icon="@drawable/ic_launcher"
