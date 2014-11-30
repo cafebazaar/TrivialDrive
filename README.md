@@ -11,7 +11,8 @@ CHANGELOG
 
 	2012-11-29: initial release
 	2013-01-08: updated to include support for subscriptions
-	2013-11-23: updating to include minor improvements in google's 5th release
+	2013-07-22: Adding Bazaar support
+	2013-11-23: (Merged from upstream) updating to include minor improvements in google's 5th release
 
 
 WHAT IS THIS SAMPLE?
@@ -50,7 +51,7 @@ important that the `AndroidManifest.xml` file also includes the in-app permissio
 3. Export an APK, signing it with your PRODUCTION (not debug) developer certificate
 
 
-### ON THE GOOGLE PLAY DEVELOPER CONSOLE
+### ON THE BAZAAR DEVELOPER PANEL
    
 1. Upload the application to the [Developer Panel](panel).
 
@@ -71,9 +72,8 @@ you are not immediately charged when you test it, set the trial period to
 seven days.
 
 5. Grab the application's public key (a base-64 string) -- you will need
-that next. Note that this is the *application's* public key, not the
-developer public key. You can find the application's public key in
-the **Dealer Apps** page for your application.
+that next. You can find the application's public key in the **Dealer Apps**
+page for your application.
 
 ### BACK TO THE CODE
 
@@ -83,25 +83,15 @@ the **Dealer Apps** page for your application.
 
 3. Export an APK, signing it with your PRODUCTION (not debug) developer certificate
 
-### BACK TO GOOGLE PLAY DEVELOPER CONSOLE
+### BACK TO BAZAAR DEVELOPER PANEL
    
-1. Upload the updated APK to Google Play
+1. Upload the updated APK to Bazaar Developer Panel
     
 ### TEST THE CODE
 
 1. Install the APK, signed with your PRODUCTION certificate, to a test device [*] 
 2. Run the app
-3. Make purchases (make sure you're purchasing with an account that's NOT
-  your developer account with which you uploaded the app to Google Play).
-
-   Remember to refund any real purchases you make, if you don't want the 
-   charges to actually to through.
-
-   [*]: it will be easier to use a test device that doesn't have your
-   developer account logged in; this is because, if you attempt to purchase
-   an in-app item using the same account that you used to publish the app,
-   the purchase will not go through.
-
+3. Make purchases.
 
 A NOTE ABOUT SECURITY
 ---------------------
