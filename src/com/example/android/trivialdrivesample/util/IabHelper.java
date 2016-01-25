@@ -264,7 +264,9 @@ public class IabHelper {
 
         Intent serviceIntent = new Intent("ir.cafebazaar.pardakht.InAppBillingService.BIND");
         serviceIntent.setPackage("com.farsitel.bazaar");
-        if (!mContext.getPackageManager().queryIntentServices(serviceIntent, 0).isEmpty()) {
+        PackageManager pm=mContext.getPackageManager();
+        List<ResolveInfo> intentServices = pm.queryIntentServices(serviceIntent, 0);
+        if (intentServices != null && !intentServices.isEmpty()) {
             // service available to handle that Intent
             mContext.bindService(serviceIntent, mServiceConn, Context.BIND_AUTO_CREATE);
         }
@@ -289,7 +291,7 @@ public class IabHelper {
         mSetupDone = false;
         if (mServiceConn != null) {
             logDebug("Unbinding from service.");
-            if (mContext != null) mContext.unbindService(mServiceConn);
+            if (mContext != null && mService!=null) mContext.unbindService(mServiceConn);
         }
         mDisposed = true;
         mContext = null;
