@@ -53,9 +53,9 @@ important that the `AndroidManifest.xml` file also includes the in-app permissio
 
 ### ON THE BAZAAR DEVELOPER PANEL
    
-1. Upload the application to the [Developer Panel](panel).
+1. Upload the application to the [Developer Panel][panel].
 
-[Developer Panel]: http://cafebazaar.ir/panel/
+[panel]: https://cafebazaar.ir/developers/panel/apps/?l=en "Cafe Bazaar Developer Panel"
 
 2. Using the **Enter** button in In-app Billing column of the created app,
 go to In-app Billing Panel.
