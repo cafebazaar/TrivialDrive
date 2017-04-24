@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package com.example.android.trivialdrivesample.util;
+package ranjbar.hadi.likestan.util;
 
 import android.app.Activity;
 import android.app.PendingIntent;
@@ -218,7 +218,12 @@ public class IabHelper {
             public void onServiceConnected(ComponentName name, IBinder service) {
                 if (mDisposed) return;
                 logDebug("Billing service connected.");
-                mService = IInAppBillingService.Stub.asInterface(service);
+                if (!"com.farsitel.bazaar".equals(name.getPackageName())) {
+                    logDebug("can't find bazaar app!");
+                    return;
+                } else {
+                    mService = IInAppBillingService.Stub.asInterface(service);
+                }
                 String packageName = mContext.getPackageName();
                 try {
                     logDebug("Checking for in-app billing 3 support.");
