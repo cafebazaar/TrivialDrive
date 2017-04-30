@@ -269,7 +269,7 @@ public class IabHelper {
             // make sure "packages" is not null
             if (!(packages.isEmpty())) {
             // service available to handle that Intent
-            bindService(serviceIntent, bazaarService, Context.BIND_AUTO_CREATE);
+            mContext.bindService(serviceIntent, bazaarService, Context.BIND_AUTO_CREATE);
              }
         }
         else {
