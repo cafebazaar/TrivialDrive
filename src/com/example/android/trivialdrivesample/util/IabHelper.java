@@ -79,7 +79,10 @@ public class IabHelper {
 
     // Has this object been disposed of? (If so, we should ignore callbacks, etc)
     boolean mDisposed = false;
-
+    
+    // Bazaar service resolve
+    List<ResolveInfo> packages;
+    
     // Are subscriptions supported?
     boolean mSubscriptionsSupported = false;
 
@@ -264,9 +267,13 @@ public class IabHelper {
 
         Intent serviceIntent = new Intent("ir.cafebazaar.pardakht.InAppBillingService.BIND");
         serviceIntent.setPackage("com.farsitel.bazaar");
-        if (!mContext.getPackageManager().queryIntentServices(serviceIntent, 0).isEmpty()) {
+        packages =  mContext.getPackageManager().queryIntentServices(serviceIntent, 0);
+        if (packages !=null) {
+            // make sure "packages" is not null
+            if (!(packages.isEmpty())) {
             // service available to handle that Intent
-            mContext.bindService(serviceIntent, mServiceConn, Context.BIND_AUTO_CREATE);
+            mContext.bindService(serviceIntent, bazaarService, Context.BIND_AUTO_CREATE);
+             }
         }
         else {
             // no service available to handle that Intent
@@ -287,7 +294,7 @@ public class IabHelper {
     public void dispose() {
         logDebug("Disposing.");
         mSetupDone = false;
-        if (mServiceConn != null) {
+        if ((mServiceConn != null)&&(packages !=null)) {
             logDebug("Unbinding from service.");
             if (mContext != null) mContext.unbindService(mServiceConn);
         }
