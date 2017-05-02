@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package ranjbar.hadi.likestan.util;
+package com.example.android.trivialdrivesample.util;
 
 import android.app.Activity;
 import android.app.PendingIntent;
