@@ -141,4 +141,45 @@ interface IInAppBillingService {
      * @return 0 if consumption succeeded. Appropriate error values for failures.
      */
     int consumePurchase(int apiVersion, String packageName, String purchaseToken);
+
+    /**
+     * Returns an intent to launch the purchase flow for an in-app item by providing a SKU,
+     * the type, a unique purchase token and an optional developer payload.
+     * @param apiVersion billing API version that the app is using
+     * @param packageName package name of the calling app
+     * @param sku the SKU of the in-app item as published in the developer console
+     * @param type the type of the in-app item ("inapp" for one-time purchases
+     *        and "subs" for subscription).
+     * @param developerPayload optional argument to be sent back with the purchase information
+     * @return Bundle containing the following key-value pairs
+     *         "RESPONSE_CODE" with int value, RESULT_OK(0) if success, other response codes on
+     *              failure as listed above.
+     *         "BUY_INTENT" - Intent to start the purchase flow
+     *
+     * The intent should be launched with startActivityForResult. When purchase flow
+     * has completed, the onActivityResult() will give a resultCode of OK or CANCELED.
+     * If the purchase is successful, the result data will contain the following key-value pairs
+     *         "RESPONSE_CODE" with int value, RESULT_OK(0) if success, other response codes on
+     *              failure as listed above.
+     *         "INAPP_PURCHASE_DATA" - String in JSON format similar to
+     *              '{"orderId":"12999763169054705758.1371079406387615",
+     *                "packageName":"com.example.app",
+     *                "productId":"exampleSku",
+     *                "purchaseTime":1345678900000,
+     *                "purchaseToken" : "122333444455555",
+     *                "developerPayload":"example developer payload" }'
+     *         "INAPP_DATA_SIGNATURE" - String containing the signature of the purchase data that
+     *                                  was signed with the private key of the developer
+     *                                  TODO: change this to app-specific keys.
+     */
+    Bundle getBuyIntentV2(int apiVersion, String packageName, String sku, String type,
+        String developerPayload);
+
+    /**
+     * Returns the config of purchase.
+     *
+     * @return Bundle containing the following key-value pair
+     *         "INTENT_V2_SUPPORT" with boolean value
+     */
+    Bundle getPurchaseConfig(int apiVersion, String packageName, String type);
 }
