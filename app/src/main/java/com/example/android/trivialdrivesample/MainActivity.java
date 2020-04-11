@@ -135,7 +135,8 @@ public class MainActivity extends Activity {
          * of their own and then fake messages from the server.
          */
 
-        // TODO fix this in your project, this is for test. followed the instructions
+        // TODO Change this to your own base64 public key which you can get from your Bazaar developer panel,
+        //  For more information read the Bazaar In-App Billings documentation.
         String base64EncodedPublicKey = "CONSTRUCT_YOUR_KEY_AND_PLACE_IT_HERE";
 
         // Create the helper, passing it our context and the public key to verify signatures with
