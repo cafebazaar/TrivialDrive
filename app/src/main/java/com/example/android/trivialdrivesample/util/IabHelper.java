@@ -20,8 +20,10 @@ import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender.SendIntentException;
+import android.content.IntentSender;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -140,6 +142,9 @@ public class IabHelper {
     public static final String RESPONSE_INAPP_PURCHASE_DATA_LIST = "INAPP_PURCHASE_DATA_LIST";
     public static final String RESPONSE_INAPP_SIGNATURE_LIST = "INAPP_DATA_SIGNATURE_LIST";
     public static final String INAPP_CONTINUATION_TOKEN = "INAPP_CONTINUATION_TOKEN";
+
+    // Keys for the response from getPurchaseConfig
+    private static final String INTENT_V2_SUPPORT = "INTENT_V2_SUPPORT";
 
     // Item types
     public static final String ITEM_TYPE_INAPP = "inapp";
@@ -264,7 +269,10 @@ public class IabHelper {
 
         Intent serviceIntent = new Intent("ir.cafebazaar.pardakht.InAppBillingService.BIND");
         serviceIntent.setPackage("com.farsitel.bazaar");
-        if (!mContext.getPackageManager().queryIntentServices(serviceIntent, 0).isEmpty()) {
+
+        PackageManager pm=mContext.getPackageManager();
+        List<ResolveInfo> intentServices = pm.queryIntentServices(serviceIntent, 0);
+        if (intentServices != null && !intentServices.isEmpty()) {
             // service available to handle that Intent
             mContext.bindService(serviceIntent, mServiceConn, Context.BIND_AUTO_CREATE);
         }
@@ -289,7 +297,9 @@ public class IabHelper {
         mSetupDone = false;
         if (mServiceConn != null) {
             logDebug("Unbinding from service.");
-            if (mContext != null) mContext.unbindService(mServiceConn);
+            if (mContext != null && mService != null) {
+                mContext.unbindService(mServiceConn);
+            }
         }
         mDisposed = true;
         mContext = null;
@@ -383,35 +393,26 @@ public class IabHelper {
 
         try {
             logDebug("Constructing buy intent for " + sku + ", item type: " + itemType);
-            Bundle buyIntentBundle = mService.getBuyIntent(3, mContext.getPackageName(), sku, itemType, extraData);
-            int response = getResponseCodeFromBundle(buyIntentBundle);
-            if (response != BILLING_RESPONSE_RESULT_OK) {
-                logError("Unable to buy item, Error response: " + getResponseDesc(response));
-                flagEndAsync();
-                result = new IabResult(response, "Unable to buy item");
-                if (listener != null) listener.onIabPurchaseFinished(result, null);
-                return;
-            }
 
-            PendingIntent pendingIntent = buyIntentBundle.getParcelable(RESPONSE_BUY_INTENT);
-            logDebug("Launching buy intent for " + sku + ". Request code: " + requestCode);
-            mRequestCode = requestCode;
-            mPurchaseListener = listener;
-            mPurchasingItemType = itemType;
-            act.startIntentSenderForResult(pendingIntent.getIntentSender(),
-                                           requestCode, new Intent(),
-                                           Integer.valueOf(0), Integer.valueOf(0),
-                                           Integer.valueOf(0));
-        }
-        catch (SendIntentException e) {
+            int apiVersion = 3;
+            String packageName = mContext.getPackageName();
+
+            Bundle configBundle = mService.getPurchaseConfig(apiVersion, packageName, itemType);
+            if (configBundle.getBoolean(INTENT_V2_SUPPORT)) {
+                logDebug("launchBuyIntentV2 for " + sku + ", item type: " + itemType);
+                launchBuyIntentV2(act, sku, itemType, requestCode, listener, extraData);
+            } else {
+                logDebug("launchBuyIntent for " + sku + ", item type: " + itemType);
+                launchBuyIntent(act, sku, itemType, requestCode, listener, extraData);
+            }
+        } catch (IntentSender.SendIntentException e) {
             logError("SendIntentException while launching purchase flow for sku " + sku);
             e.printStackTrace();
             flagEndAsync();
 
             result = new IabResult(IABHELPER_SEND_INTENT_FAILED, "Failed to send intent.");
             if (listener != null) listener.onIabPurchaseFinished(result, null);
-        }
-        catch (RemoteException e) {
+        } catch (RemoteException e) {
             logError("RemoteException while launching purchase flow for sku " + sku);
             e.printStackTrace();
             flagEndAsync();
@@ -419,6 +420,69 @@ public class IabHelper {
             result = new IabResult(IABHELPER_REMOTE_EXCEPTION, "Remote exception while starting purchase flow");
             if (listener != null) listener.onIabPurchaseFinished(result, null);
         }
+    }
+
+    private void launchBuyIntentV2(
+            Activity act,
+            String sku,
+            String itemType,
+            int requestCode,
+            OnIabPurchaseFinishedListener listener,
+            String extraData
+    ) throws RemoteException {
+        int apiVersion = 3;
+        String packageName = mContext.getPackageName();
+
+        Bundle buyIntentBundle = mService.getBuyIntentV2(apiVersion, packageName, sku, itemType, extraData);
+        int response = getResponseCodeFromBundle(buyIntentBundle);
+        if (response != BILLING_RESPONSE_RESULT_OK) {
+            logError("Unable to buy item, Error response: " + getResponseDesc(response));
+            flagEndAsync();
+            IabResult result = new IabResult(response, "Unable to buy item");
+            if (listener != null) listener.onIabPurchaseFinished(result, null);
+            return;
+        }
+
+        Intent intent = buyIntentBundle.getParcelable(RESPONSE_BUY_INTENT);
+        logDebug("Launching buy intent for " + sku + ". Request code: " + requestCode);
+        mRequestCode = requestCode;
+        mPurchaseListener = listener;
+        mPurchasingItemType = itemType;
+        act.startActivityForResult(intent, requestCode);
+    }
+
+    private void launchBuyIntent(
+            Activity act,
+            String sku,
+            String itemType,
+            int requestCode,
+            OnIabPurchaseFinishedListener listener,
+            String extraData
+    ) throws RemoteException, IntentSender.SendIntentException {
+
+        int apiVersion = 3;
+        String packageName = mContext.getPackageName();
+
+        Bundle buyIntentBundle = mService.getBuyIntent(apiVersion, packageName, sku, itemType, extraData);
+        int response = getResponseCodeFromBundle(buyIntentBundle);
+        if (response != BILLING_RESPONSE_RESULT_OK) {
+            logError("Unable to buy item, Error response: " + getResponseDesc(response));
+            flagEndAsync();
+            IabResult result = new IabResult(response, "Unable to buy item");
+            if (listener != null) listener.onIabPurchaseFinished(result, null);
+            return;
+        }
+
+
+        PendingIntent pendingIntent = buyIntentBundle.getParcelable(RESPONSE_BUY_INTENT);
+        logDebug("Launching buy intent for " + sku + ". Request code: " + requestCode);
+        mRequestCode = requestCode;
+        mPurchaseListener = listener;
+        mPurchasingItemType = itemType;
+        act.startIntentSenderForResult(pendingIntent.getIntentSender(),
+                requestCode, new Intent(),
+                Integer.valueOf(0), Integer.valueOf(0),
+                Integer.valueOf(0));
     }
 
     /**
@@ -525,7 +589,7 @@ public class IabHelper {
     /**
      * Queries the inventory. This will query all owned items from the server, as well as
      * information on additional skus, if specified. This method may block or take long to execute.
-     * Do not call from a UI thread. For that, use the non-blocking version {@link #refreshInventoryAsync}.
+     * Do not call from a UI thread.
      *
      * @param querySkuDetails if true, SKU details (price, description, etc) will be queried as well
      *     as purchase information.
@@ -730,7 +794,8 @@ public class IabHelper {
     }
 
     /**
-     * Same as {@link consumeAsync}, but for multiple items at once.
+     * Same as {@link #consumeAsync(Purchase, OnConsumeFinishedListener)}, but for multiple items at once.
+     *
      * @param purchases The list of PurchaseInfo objects representing the purchases to consume.
      * @param listener The listener to notify when the consumption operation finishes.
      */
