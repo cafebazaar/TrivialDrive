@@ -23,6 +23,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+
 import com.example.android.trivialdrivesample.util.IabHelper;
 import com.example.android.trivialdrivesample.util.IabResult;
 import com.example.android.trivialdrivesample.util.Inventory;
@@ -31,35 +32,35 @@ import com.example.android.trivialdrivesample.util.Purchase;
 
 /**
  * Example game using in-app billing version 3.
- * <p>
+ *
  * Before attempting to run this sample, please read the README file. It
  * contains important information on how to set up this project.
- * <p>
+ *
  * All the game-specific logic is implemented here in MainActivity, while the
  * general-purpose boilerplate that can be reused in any app is provided in the
  * classes in the util/ subdirectory. When implementing your own application,
  * you can copy over util/*.java to make use of those utility classes.
- * <p>
+ *
  * This game is a simple "driving" game where the player can buy gas
  * and drive. The car has a tank which stores gas. When the player purchases
  * gas, the tank fills up (1/4 tank at a time). When the player drives, the gas
  * in the tank diminishes (also 1/4 tank at a time).
- * <p>
+ *
  * The user can also purchase a "premium upgrade" that gives them a red car
  * instead of the standard blue one (exciting!).
- * <p>
+ *
  * The user can also purchase a subscription ("infinite gas") that allows them
  * to drive without using up any gas while that subscription is active.
- * <p>
+ *
  * It's important to note the consumption mechanics for each item.
- * <p>
+ *
  * PREMIUM: the item is purchased and NEVER consumed. So, after the original
  * purchase, the player will always own that item. The application knows to
  * display the red car instead of the blue one because it queries whether
  * the premium "item" is owned or not.
- * <p>
+ *
  * INFINITE GAS: this is a subscription, and subscriptions can't be consumed.
- * <p>
+ *
  * GAS: when gas is purchased, the "gas" item is then owned. We consume it
  * when we apply that item's effects to our app's world, which to us means
  * filling up 1/4 of the tank. This happens immediately after purchase!
@@ -67,12 +68,12 @@ import com.example.android.trivialdrivesample.util.Purchase;
  * item is CONSUMED. Consumption should always happen when your game
  * world was safely updated to apply the effect of the purchase. So,
  * in an example scenario:
- * <p>
+ *
  * BEFORE:      tank at 1/2
  * ON PURCHASE: tank at 1/2, "gas" item is owned
  * IMMEDIATELY: "gas" is consumed, tank goes to 3/4
  * AFTER:       tank at 3/4, "gas" item NOT owned any more
- * <p>
+ *
  * Another important point to notice is that it may so happen that
  * the application crashed (or anything else happened) after the user
  * purchased the "gas" item, but before it was consumed. That's why,
@@ -103,8 +104,8 @@ public class MainActivity extends Activity {
     static final int RC_REQUEST = 10001;
 
     // Graphics for the gas gauge
-    static int[] TANK_RES_IDS = {R.drawable.gas0, R.drawable.gas1, R.drawable.gas2,
-            R.drawable.gas3, R.drawable.gas4};
+    static int[] TANK_RES_IDS = { R.drawable.gas0, R.drawable.gas1, R.drawable.gas2,
+                                   R.drawable.gas3, R.drawable.gas4 };
 
     // How many units (1/4 tank is our unit) fill in the tank.
     static final int TANK_MAX = 4;
@@ -201,7 +202,7 @@ public class MainActivity extends Activity {
             mSubscribedToInfiniteGas = (infiniteGasPurchase != null &&
                     verifyDeveloperPayload(infiniteGasPurchase));
             Log.d(TAG, "User " + (mSubscribedToInfiniteGas ? "HAS" : "DOES NOT HAVE")
-                    + " infinite gas subscription.");
+                        + " infinite gas subscription.");
             if (mSubscribedToInfiniteGas) mTank = TANK_MAX;
 
             // Check for gas delivery -- if we own gas, we should fill up the tank immediately
@@ -291,14 +292,13 @@ public class MainActivity extends Activity {
             // perform any handling of activity results not related to in-app
             // billing...
             super.onActivityResult(requestCode, resultCode, data);
-        } else {
+        }
+        else {
             Log.d(TAG, "onActivityResult handled by IABUtil.");
         }
     }
 
-    /**
-     * Verifies the developer payload of a purchase.
-     */
+    /** Verifies the developer payload of a purchase. */
     boolean verifyDeveloperPayload(Purchase p) {
         String payload = p.getDeveloperPayload();
 
@@ -353,14 +353,16 @@ public class MainActivity extends Activity {
                 // bought 1/4 tank of gas. So consume it.
                 Log.d(TAG, "Purchase is gas. Starting gas consumption.");
                 mHelper.consumeAsync(purchase, mConsumeFinishedListener);
-            } else if (purchase.getSku().equals(SKU_PREMIUM)) {
+            }
+            else if (purchase.getSku().equals(SKU_PREMIUM)) {
                 // bought the premium upgrade!
                 Log.d(TAG, "Purchase is premium upgrade. Congratulating user.");
                 alert("Thank you for upgrading to premium!");
                 mIsPremium = true;
                 updateUi();
                 setWaitScreen(false);
-            } else if (purchase.getSku().equals(SKU_INFINITE_GAS)) {
+            }
+            else if (purchase.getSku().equals(SKU_INFINITE_GAS)) {
                 // bought the infinite gas subscription
                 Log.d(TAG, "Infinite gas subscription purchased.");
                 alert("Thank you for subscribing to infinite gas!");
@@ -390,7 +392,8 @@ public class MainActivity extends Activity {
                 mTank = mTank == TANK_MAX ? TANK_MAX : mTank + 1;
                 saveData();
                 alert("You filled 1/4 tank. Your tank is now " + String.valueOf(mTank) + "/4 full!");
-            } else {
+            }
+            else {
                 complain("Error while consuming: " + result);
             }
             updateUi();
@@ -402,8 +405,7 @@ public class MainActivity extends Activity {
     // Drive button clicked. Burn gas!
     public void onDriveButtonClicked(View arg0) {
         Log.d(TAG, "Drive button clicked.");
-        if (!mSubscribedToInfiniteGas && mTank <= 0)
-            alert("Oh, no! You are out of gas! Try buying some!");
+        if (!mSubscribedToInfiniteGas && mTank <= 0) alert("Oh, no! You are out of gas! Try buying some!");
         else {
             if (!mSubscribedToInfiniteGas) --mTank;
             saveData();
@@ -429,7 +431,7 @@ public class MainActivity extends Activity {
     // updates UI to reflect model
     public void updateUi() {
         // update the car color to reflect premium status or lack thereof
-        ((ImageView) findViewById(R.id.free_or_premium)).setImageResource(mIsPremium ? R.drawable.premium : R.drawable.free);
+        ((ImageView)findViewById(R.id.free_or_premium)).setImageResource(mIsPremium ? R.drawable.premium : R.drawable.free);
 
         // "Upgrade" button is only visible if the user is not premium
         findViewById(R.id.upgrade_button).setVisibility(mIsPremium ? View.GONE : View.VISIBLE);
@@ -440,10 +442,11 @@ public class MainActivity extends Activity {
 
         // update gas gauge to reflect tank status
         if (mSubscribedToInfiniteGas) {
-            ((ImageView) findViewById(R.id.gas_gauge)).setImageResource(R.drawable.gas_inf);
-        } else {
+            ((ImageView)findViewById(R.id.gas_gauge)).setImageResource(R.drawable.gas_inf);
+        }
+        else {
             int index = mTank >= TANK_RES_IDS.length ? TANK_RES_IDS.length - 1 : mTank;
-            ((ImageView) findViewById(R.id.gas_gauge)).setImageResource(TANK_RES_IDS[index]);
+            ((ImageView)findViewById(R.id.gas_gauge)).setImageResource(TANK_RES_IDS[index]);
         }
     }
 
