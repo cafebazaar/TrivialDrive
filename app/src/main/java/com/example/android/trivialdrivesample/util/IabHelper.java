@@ -397,7 +397,7 @@ public class IabHelper {
             int apiVersion = 3;
             String packageName = mContext.getPackageName();
 
-            Bundle configBundle = mService.getPurchaseConfig(apiVersion, packageName, itemType);
+            Bundle configBundle = mService.getPurchaseConfig(apiVersion);
             if (configBundle != null && configBundle.getBoolean(INTENT_V2_SUPPORT)) {
                 logDebug("launchBuyIntentV2 for " + sku + ", item type: " + itemType);
                 launchBuyIntentV2(act, sku, itemType, requestCode, listener, extraData);
