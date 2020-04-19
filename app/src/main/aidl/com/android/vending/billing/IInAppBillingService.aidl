@@ -181,5 +181,5 @@ interface IInAppBillingService {
      * @return Bundle containing the following key-value pair
      *         "INTENT_V2_SUPPORT" with boolean value
      */
-    Bundle getPurchaseConfig(int apiVersion, String packageName, String type);
+    Bundle getPurchaseConfig(int apiVersion);
 }
