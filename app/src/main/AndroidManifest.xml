@@ -38,5 +38,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <receiver android:name=".util.IABReceiver">
+            <intent-filter>
+                <action android:name="com.farsitel.bazaar.ping"/>
+                <action android:name="com.farsitel.bazaar.purchase"/>
+                <action android:name="com.farsitel.bazaar.billingSupport"/>
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>
