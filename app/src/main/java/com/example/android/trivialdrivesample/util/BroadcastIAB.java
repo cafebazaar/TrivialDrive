@@ -38,11 +38,15 @@ public class BroadcastIAB extends IAB {
     public static final String pingAction = bazaarBaseAction + "ping";
     public static final String billingSupport = bazaarBaseAction + "billingSupport";
     public static final String purchaseAction = bazaarBaseAction + "purchase";
+    public static final String skuDetailAction = bazaarBaseAction + "skuDetail";
+    public static final String getPurchaseAction = bazaarBaseAction + "getPurchase";
     public static final String consumeAction = bazaarBaseAction + "consume";
 
     public static final String receivePingAction = pingAction + bazaarPostAction;
     public static final String receiveBillingSupport = billingSupport + bazaarPostAction;
     public static final String receivePurchaseAction = purchaseAction + bazaarPostAction;
+    public static final String receiveSkuDetailAction = skuDetailAction + bazaarPostAction;
+    public static final String receiveGetPurchaseAction = getPurchaseAction + bazaarPostAction;
     public static final String receiveConsumeAction = consumeAction + bazaarPostAction;
     private final Context context;
     private final String signatureBase64;
@@ -51,6 +55,12 @@ public class BroadcastIAB extends IAB {
 
     private AbortableCountDownLatch consumePurchaseLatch;
     private int consumePurchaseResponse;
+
+    private AbortableCountDownLatch getSkuDetailLatch;
+    private Bundle skuDetailBundle;
+
+    private AbortableCountDownLatch getPurchaseLatch;
+    private Bundle getPurchaseBundle;
 
     private BroadcastReceiver iabReceiver = null;
     private WeakReference<OnConnectListener> connectListenerWeakReference;
@@ -131,6 +141,19 @@ public class BroadcastIAB extends IAB {
                         consumePurchaseResponse = getResponseCodeFromIntent(intent);
                         if (consumePurchaseLatch != null) {
                             consumePurchaseLatch.countDown();
+                        }
+                        break;
+
+                    case receiveSkuDetailAction:
+                        skuDetailBundle = intent.getExtras();
+                        if (getSkuDetailLatch != null) {
+                            getSkuDetailLatch.countDown();
+                        }
+                        break;
+                    case receiveGetPurchaseAction:
+                        getPurchaseBundle = intent.getExtras();
+                        if (getPurchaseLatch != null) {
+                            getPurchaseLatch.countDown();
                         }
                         break;
                 }
@@ -266,13 +289,51 @@ public class BroadcastIAB extends IAB {
 
     @Override
     public Bundle getSkuDetails(int billingVersion, String packageName, String itemType, Bundle querySkus) throws RemoteException {
-        // TODO complete this
+
+        getPurchaseBundle = null;
+
+        Intent intent = getNewIntentForBroadcast();
+        intent.setAction(purchaseAction);
+        intent.putExtra(ITEM_TYPE_KEY, itemType);
+        intent.putExtra(PACKAGE_NAME_KEY, packageName);
+        intent.putExtra(API_VERSION_KEY, billingVersion);
+        intent.putExtras(querySkus);
+        context.sendBroadcast(intent);
+
+        getPurchaseLatch = new AbortableCountDownLatch(1);
+        try {
+            getPurchaseLatch.await();
+            return getPurchaseBundle;
+
+        } catch (InterruptedException e) {
+            logger.logWarn("error happened while getting sku detail for " + packageName);
+        }
+
         return new Bundle();
     }
 
     @Override
     public Bundle getPurchases(int billingVersion, String packageName, String itemType, String continueToken) throws RemoteException {
-        // TODO complete this
+
+        skuDetailBundle = null;
+
+        Intent intent = getNewIntentForBroadcast();
+        intent.setAction(getPurchaseAction);
+        intent.putExtra(ITEM_TYPE_KEY, itemType);
+        intent.putExtra(PACKAGE_NAME_KEY, packageName);
+        intent.putExtra(API_VERSION_KEY, billingVersion);
+        intent.putExtra(TOKEN_KEY, continueToken);
+        context.sendBroadcast(intent);
+
+        getSkuDetailLatch = new AbortableCountDownLatch(1);
+        try {
+            getSkuDetailLatch.await();
+            return skuDetailBundle;
+
+        } catch (InterruptedException e) {
+            logger.logWarn("error happened while getting sku detail for " + packageName);
+        }
+
         return new Bundle();
     }
 
