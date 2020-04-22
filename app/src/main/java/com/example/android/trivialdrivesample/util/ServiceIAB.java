@@ -16,22 +16,14 @@ import com.android.vending.billing.IInAppBillingService;
 import com.example.android.trivialdrivesample.util.communication.BillingSupportCommunication;
 import com.example.android.trivialdrivesample.util.communication.OnConnectListener;
 import java.util.List;
-import org.json.JSONException;
 import static com.example.android.trivialdrivesample.util.IabHelper.BILLING_RESPONSE_RESULT_OK;
-import static com.example.android.trivialdrivesample.util.IabHelper.IABHELPER_BAD_RESPONSE;
 import static com.example.android.trivialdrivesample.util.IabHelper.IABHELPER_MISSING_TOKEN;
 import static com.example.android.trivialdrivesample.util.IabHelper.IABHELPER_REMOTE_EXCEPTION;
 import static com.example.android.trivialdrivesample.util.IabHelper.IABHELPER_SEND_INTENT_FAILED;
 import static com.example.android.trivialdrivesample.util.IabHelper.IABHELPER_SUBSCRIPTIONS_NOT_AVAILABLE;
-import static com.example.android.trivialdrivesample.util.IabHelper.IABHELPER_UNKNOWN_ERROR;
-import static com.example.android.trivialdrivesample.util.IabHelper.IABHELPER_UNKNOWN_PURCHASE_RESPONSE;
-import static com.example.android.trivialdrivesample.util.IabHelper.IABHELPER_USER_CANCELLED;
-import static com.example.android.trivialdrivesample.util.IabHelper.IABHELPER_VERIFICATION_FAILED;
 import static com.example.android.trivialdrivesample.util.IabHelper.ITEM_TYPE_INAPP;
 import static com.example.android.trivialdrivesample.util.IabHelper.ITEM_TYPE_SUBS;
 import static com.example.android.trivialdrivesample.util.IabHelper.RESPONSE_BUY_INTENT;
-import static com.example.android.trivialdrivesample.util.IabHelper.RESPONSE_INAPP_PURCHASE_DATA;
-import static com.example.android.trivialdrivesample.util.IabHelper.RESPONSE_INAPP_SIGNATURE;
 import static com.example.android.trivialdrivesample.util.IabHelper.getResponseDesc;
 
 public class ServiceIAB extends IAB {
@@ -227,86 +219,6 @@ public class ServiceIAB extends IAB {
                 requestCode, new Intent(),
                 Integer.valueOf(0), Integer.valueOf(0),
                 Integer.valueOf(0));
-    }
-
-    @Override
-    public boolean handleActivityResult(int requestCode, int resultCode, Intent data, String mSignatureBase64) {
-
-        IabResult result;
-        // end of async purchase operation that started on launchPurchaseFlow
-        flagEndAsync();
-
-        if (data == null) {
-            logger.logError("Null data in IAB activity result.");
-            result = new IabResult(IABHELPER_BAD_RESPONSE, "Null data in IAB result");
-            if (mPurchaseListener != null) mPurchaseListener.onIabPurchaseFinished(result, null);
-            return true;
-        }
-
-        int responseCode = getResponseCodeFromIntent(data);
-        String purchaseData = data.getStringExtra(RESPONSE_INAPP_PURCHASE_DATA);
-        String dataSignature = data.getStringExtra(RESPONSE_INAPP_SIGNATURE);
-
-        if (resultCode == Activity.RESULT_OK && responseCode == BILLING_RESPONSE_RESULT_OK) {
-            logger.logDebug("Successful resultcode from purchase activity.");
-            logger.logDebug("Purchase data: " + purchaseData);
-            logger.logDebug("Data signature: " + dataSignature);
-            logger.logDebug("Extras: " + data.getExtras());
-            logger.logDebug("Expected item type: " + mPurchasingItemType);
-
-            if (purchaseData == null || dataSignature == null) {
-                logger.logError("BUG: either purchaseData or dataSignature is null.");
-                logger.logDebug("Extras: " + data.getExtras().toString());
-                result = new IabResult(IABHELPER_UNKNOWN_ERROR, "IAB returned null purchaseData or dataSignature");
-                if (mPurchaseListener != null)
-                    mPurchaseListener.onIabPurchaseFinished(result, null);
-                return true;
-            }
-
-            Purchase purchase = null;
-            try {
-                purchase = new Purchase(mPurchasingItemType, purchaseData, dataSignature);
-                String sku = purchase.getSku();
-
-                // Verify signature
-                if (!Security.verifyPurchase(mSignatureBase64, purchaseData, dataSignature)) {
-                    logger.logError("Purchase signature verification FAILED for sku " + sku);
-                    result = new IabResult(IABHELPER_VERIFICATION_FAILED, "Signature verification failed for sku " + sku);
-                    if (mPurchaseListener != null)
-                        mPurchaseListener.onIabPurchaseFinished(result, purchase);
-                    return true;
-                }
-                logger.logDebug("Purchase signature successfully verified.");
-            } catch (JSONException e) {
-                logger.logError("Failed to parse purchase data.");
-                e.printStackTrace();
-                result = new IabResult(IABHELPER_BAD_RESPONSE, "Failed to parse purchase data.");
-                if (mPurchaseListener != null)
-                    mPurchaseListener.onIabPurchaseFinished(result, null);
-                return true;
-            }
-
-            if (mPurchaseListener != null) {
-                mPurchaseListener.onIabPurchaseFinished(new IabResult(BILLING_RESPONSE_RESULT_OK, "Success"), purchase);
-            }
-        } else if (resultCode == Activity.RESULT_OK) {
-            // result code was OK, but in-app billing response was not OK.
-            logger.logDebug("Result code was OK but in-app billing response was not OK: " + getResponseDesc(responseCode));
-            if (mPurchaseListener != null) {
-                result = new IabResult(responseCode, "Problem purchashing item.");
-                mPurchaseListener.onIabPurchaseFinished(result, null);
-            }
-        } else if (resultCode == Activity.RESULT_CANCELED) {
-            logger.logDebug("Purchase canceled - Response: " + getResponseDesc(responseCode));
-            result = new IabResult(IABHELPER_USER_CANCELLED, "User canceled.");
-            if (mPurchaseListener != null) mPurchaseListener.onIabPurchaseFinished(result, null);
-        } else {
-            logger.logError("Purchase failed. Result code: " + Integer.toString(resultCode)
-                    + ". Response: " + getResponseDesc(responseCode));
-            result = new IabResult(IABHELPER_UNKNOWN_PURCHASE_RESPONSE, "Unknown purchase response.");
-            if (mPurchaseListener != null) mPurchaseListener.onIabPurchaseFinished(result, null);
-        }
-        return true;
     }
 
     @Override

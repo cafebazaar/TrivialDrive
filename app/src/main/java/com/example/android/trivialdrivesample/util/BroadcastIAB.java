@@ -265,12 +265,6 @@ public class BroadcastIAB extends IAB {
     }
 
     @Override
-    public boolean handleActivityResult(int requestCode, int resultCode, Intent data, String mSignatureBase64) {
-        // TODO complete this
-        return false;
-    }
-
-    @Override
     public Bundle getSkuDetails(int billingVersion, String packageName, String itemType, Bundle querySkus) throws RemoteException {
         // TODO complete this
         return new Bundle();
