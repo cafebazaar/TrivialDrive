@@ -97,7 +97,7 @@ public class ServiceIAB extends IAB {
             logger.logDebug("Checking for in-app billing 3 support.");
 
             // check for in-app billing v3 support
-            int response = mService.isBillingSupported(3, packageName, ITEM_TYPE_INAPP);
+            int response = mService.isBillingSupported(apiVersion, packageName, ITEM_TYPE_INAPP);
             if (response != BILLING_RESPONSE_RESULT_OK) {
                 mSubscriptionsSupported = false;
                 communication.onBillingSupportResult(response);
@@ -106,7 +106,7 @@ public class ServiceIAB extends IAB {
             logger.logDebug("In-app billing version 3 supported for " + packageName);
 
             // check for v3 subscriptions support
-            response = mService.isBillingSupported(3, packageName, ITEM_TYPE_SUBS);
+            response = mService.isBillingSupported(apiVersion, packageName, ITEM_TYPE_SUBS);
             if (response == BILLING_RESPONSE_RESULT_OK) {
                 logger.logDebug("Subscriptions AVAILABLE.");
                 mSubscriptionsSupported = true;
@@ -140,7 +140,6 @@ public class ServiceIAB extends IAB {
         try {
             logger.logDebug("Constructing buy intent for " + sku + ", item type: " + itemType);
 
-            int apiVersion = 3;
             String packageName = mContext.getPackageName();
 
             Bundle configBundle = mService.getPurchaseConfig(apiVersion);
@@ -178,7 +177,6 @@ public class ServiceIAB extends IAB {
             IabHelper.OnIabPurchaseFinishedListener listener,
             String extraData
     ) throws RemoteException {
-        int apiVersion = 3;
         String packageName = context.getPackageName();
 
         Bundle buyIntentBundle = mService.getBuyIntentV2(apiVersion, packageName, sku, itemType, extraData);
@@ -208,7 +206,6 @@ public class ServiceIAB extends IAB {
             String extraData
     ) throws RemoteException, IntentSender.SendIntentException {
 
-        int apiVersion = 3;
         String packageName = context.getPackageName();
 
         Bundle buyIntentBundle = mService.getBuyIntent(apiVersion, packageName, sku, itemType, extraData);
@@ -324,7 +321,7 @@ public class ServiceIAB extends IAB {
             }
 
             logger.logDebug("Consuming sku: " + sku + ", token: " + token);
-            int response = mService.consumePurchase(3, context.getPackageName(), token);
+            int response = mService.consumePurchase(apiVersion, context.getPackageName(), token);
             if (response == BILLING_RESPONSE_RESULT_OK) {
                 logger.logDebug("Successfully consumed sku: " + sku);
             } else {
@@ -343,7 +340,7 @@ public class ServiceIAB extends IAB {
 
     @Override
     public Bundle getSkuDetails(int billingVersion, String packageName, String itemType, Bundle querySkus) throws RemoteException {
-        return mService.getSkuDetails(3, packageName,
+        return mService.getSkuDetails(apiVersion, packageName,
                 itemType, querySkus);
     }
 

@@ -13,7 +13,10 @@ import android.support.annotation.NonNull;
 import com.example.android.trivialdrivesample.util.communication.BillingSupportCommunication;
 import com.example.android.trivialdrivesample.util.communication.OnConnectListener;
 import java.lang.ref.WeakReference;
+import java.util.concurrent.TimeUnit;
 import static com.example.android.trivialdrivesample.util.IabHelper.BILLING_RESPONSE_RESULT_OK;
+import static com.example.android.trivialdrivesample.util.IabHelper.IABHELPER_ERROR_BASE;
+import static com.example.android.trivialdrivesample.util.IabHelper.IABHELPER_MISSING_TOKEN;
 import static com.example.android.trivialdrivesample.util.IabHelper.RESPONSE_BUY_INTENT;
 import static com.example.android.trivialdrivesample.util.IabHelper.getResponseDesc;
 
@@ -27,6 +30,7 @@ public class BroadcastIAB extends IAB {
     public static final String SKU_KEY = "sku";
     public static final String ITEM_TYPE_KEY = "itemType";
     public static final String DEVELOPER_PAYLOAD_KEY = "developerPayload";
+    public static final String TOKEN_KEY = "token";
 
     private static final String bazaarBaseAction = "com.farsitel.bazaar.";
     private static final String bazaarPostAction = ".iab";
@@ -34,14 +38,19 @@ public class BroadcastIAB extends IAB {
     public static final String pingAction = bazaarBaseAction + "ping";
     public static final String billingSupport = bazaarBaseAction + "billingSupport";
     public static final String purchaseAction = bazaarBaseAction + "purchase";
+    public static final String consumeAction = bazaarBaseAction + "consume";
 
     public static final String receivePingAction = pingAction + bazaarPostAction;
     public static final String receiveBillingSupport = billingSupport + bazaarPostAction;
     public static final String receivePurchaseAction = purchaseAction + bazaarPostAction;
+    public static final String receiveConsumeAction = consumeAction + bazaarPostAction;
     private final Context context;
     private final String signatureBase64;
 
     private int requestCode;
+
+    private AbortableCountDownLatch consumePurchaseLatch;
+    private int consumePurchaseResponse;
 
     private BroadcastReceiver iabReceiver = null;
     private WeakReference<OnConnectListener> connectListenerWeakReference;
@@ -118,6 +127,12 @@ public class BroadcastIAB extends IAB {
                         handleBillingSupport(intent.getExtras());
                         break;
 
+                    case receiveConsumeAction:
+                        consumePurchaseResponse = getResponseCodeFromIntent(intent);
+                        if (consumePurchaseLatch != null) {
+                            consumePurchaseLatch.countDown();
+                        }
+                        break;
                 }
             }
         };
@@ -207,7 +222,7 @@ public class BroadcastIAB extends IAB {
         intent.setAction(purchaseAction);
         intent.putExtra(SKU_KEY, sku);
         intent.putExtra(ITEM_TYPE_KEY, itemType);
-        intent.putExtra(API_VERSION_KEY, 3);
+        intent.putExtra(API_VERSION_KEY, apiVersion);
         intent.putExtra(DEVELOPER_PAYLOAD_KEY, extraData);
         context.sendBroadcast(intent);
 
@@ -217,7 +232,36 @@ public class BroadcastIAB extends IAB {
 
     @Override
     void consume(Context mContext, Purchase itemInfo) throws IabException {
-        // TODO complete this
+        String token = itemInfo.getToken();
+        String sku = itemInfo.getSku();
+        if (token == null || token.equals("")) {
+            logger.logError("Can't consume " + sku + ". No token.");
+            throw new IabException(IABHELPER_MISSING_TOKEN, "PurchaseInfo is missing token for sku: "
+                    + sku + " " + itemInfo);
+        }
+
+        logger.logDebug("Consuming sku: " + sku + ", token: " + token);
+
+        Intent intent = getNewIntentForBroadcast();
+        intent.setAction(purchaseAction);
+        intent.putExtra(TOKEN_KEY, token);
+        intent.putExtra(API_VERSION_KEY, apiVersion);
+        mContext.sendBroadcast(intent);
+
+        consumePurchaseLatch = new AbortableCountDownLatch(1);
+
+
+        try {
+            consumePurchaseLatch.await(60, TimeUnit.SECONDS);
+            if (consumePurchaseResponse == BILLING_RESPONSE_RESULT_OK) {
+                logger.logDebug("Successfully consumed sku: " + sku);
+            } else {
+                logger.logDebug("Error consuming consuming sku " + sku + ". " + getResponseDesc(consumePurchaseResponse));
+                throw new IabException(consumePurchaseResponse, "Error consuming sku " + sku);
+            }
+        } catch (InterruptedException e) {
+            throw new IabException(IABHELPER_ERROR_BASE, "Error consuming sku " + sku);
+        }
     }
 
     @Override
@@ -248,7 +292,7 @@ public class BroadcastIAB extends IAB {
                 logger.logDebug("Unregister broadcast cause an error " + e.getMessage());
             }
         }
-
+        consumePurchaseLatch.abort();
         iabReceiver = null;
     }
 }

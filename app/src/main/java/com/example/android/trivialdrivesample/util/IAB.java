@@ -13,6 +13,7 @@ import static com.example.android.trivialdrivesample.util.IabHelper.RESPONSE_COD
 public abstract class IAB {
 
     IABLogger logger;
+    int apiVersion = 3;
 
     // Are subscriptions supported?
     boolean mSubscriptionsSupported = false;
