@@ -43,6 +43,7 @@
                 <action android:name="com.farsitel.bazaar.ping"/>
                 <action android:name="com.farsitel.bazaar.purchase"/>
                 <action android:name="com.farsitel.bazaar.billingSupport"/>
+                <action android:name="com.farsitel.bazaar.consume"/>
             </intent-filter>
         </receiver>
     </application>
