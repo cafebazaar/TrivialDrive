@@ -203,6 +203,7 @@ public class BroadcastIAB extends IAB {
         intentFilter.addAction(receivePingAction);
         intentFilter.addAction(receiveBillingSupport);
         intentFilter.addAction(receivePurchaseAction);
+        intentFilter.addAction(receiveConsumeAction);
         context.registerReceiver(iabReceiver, intentFilter);
     }
 
@@ -266,7 +267,7 @@ public class BroadcastIAB extends IAB {
         logger.logDebug("Consuming sku: " + sku + ", token: " + token);
 
         Intent intent = getNewIntentForBroadcast();
-        intent.setAction(purchaseAction);
+        intent.setAction(consumeAction);
         intent.putExtra(TOKEN_KEY, token);
         intent.putExtra(API_VERSION_KEY, apiVersion);
         mContext.sendBroadcast(intent);
