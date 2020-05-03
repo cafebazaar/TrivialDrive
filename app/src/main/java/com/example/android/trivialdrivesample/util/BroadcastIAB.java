@@ -204,6 +204,8 @@ public class BroadcastIAB extends IAB {
         intentFilter.addAction(receiveBillingSupport);
         intentFilter.addAction(receivePurchaseAction);
         intentFilter.addAction(receiveConsumeAction);
+        intentFilter.addAction(receiveGetPurchaseAction);
+        intentFilter.addAction(receiveSkuDetailAction);
         context.registerReceiver(iabReceiver, intentFilter);
     }
 

@@ -44,6 +44,8 @@
                 <action android:name="com.farsitel.bazaar.purchase"/>
                 <action android:name="com.farsitel.bazaar.billingSupport"/>
                 <action android:name="com.farsitel.bazaar.consume"/>
+                <action android:name="com.farsitel.bazaar.getPurchase"/>
+                <action android:name="com.farsitel.bazaar.consume"/>
             </intent-filter>
         </receiver>
     </application>
