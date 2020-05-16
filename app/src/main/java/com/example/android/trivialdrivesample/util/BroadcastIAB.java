@@ -303,10 +303,10 @@ public class BroadcastIAB extends IAB {
         intent.putExtras(querySkus);
         context.sendBroadcast(intent);
 
-        getPurchaseLatch = new AbortableCountDownLatch(1);
+        getSkuDetailLatch = new AbortableCountDownLatch(1);
         try {
-            getPurchaseLatch.await();
-            return getPurchaseBundle;
+            getSkuDetailLatch.await();
+            return skuDetailBundle;
 
         } catch (InterruptedException e) {
             logger.logWarn("error happened while getting sku detail for " + packageName);
@@ -328,10 +328,10 @@ public class BroadcastIAB extends IAB {
         intent.putExtra(TOKEN_KEY, continueToken);
         context.sendBroadcast(intent);
 
-        getSkuDetailLatch = new AbortableCountDownLatch(1);
+        getPurchaseLatch = new AbortableCountDownLatch(1);
         try {
-            getSkuDetailLatch.await();
-            return skuDetailBundle;
+            getPurchaseLatch.await();
+            return getPurchaseBundle;
 
         } catch (InterruptedException e) {
             logger.logWarn("error happened while getting sku detail for " + packageName);
@@ -350,7 +350,17 @@ public class BroadcastIAB extends IAB {
                 logger.logDebug("Unregister broadcast cause an error " + e.getMessage());
             }
         }
-        consumePurchaseLatch.abort();
+        if (consumePurchaseLatch != null) {
+            consumePurchaseLatch.abort();
+        }
+
+        if (getSkuDetailLatch != null) {
+            getSkuDetailLatch.abort();
+        }
+
+        if (getPurchaseLatch != null) {
+            getPurchaseLatch.abort();
+        }
         iabReceiver = null;
     }
 }
