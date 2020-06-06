@@ -1,10 +1,8 @@
 package com.example.android.trivialdrivesample.util;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -62,7 +60,7 @@ public class BroadcastIAB extends IAB {
     private AbortableCountDownLatch getPurchaseLatch;
     private Bundle getPurchaseBundle;
 
-    private BroadcastReceiver iabReceiver = null;
+    private IABReceiverCommunicator iabReceiver = null;
     private WeakReference<OnConnectListener> connectListenerWeakReference;
     private WeakReference<BillingSupportCommunication> billingSupportWeakReference;
     private WeakReference<Activity> launchPurchaseActivityWeakReference;
@@ -87,7 +85,7 @@ public class BroadcastIAB extends IAB {
 
             if (versionCode > 1) {
                 createIABReceiver();
-                registerBroadcast(context);
+                registerBroadcast();
                 trySendPingToBazaar();
                 connectListenerWeakReference = new WeakReference<>(listener);
 
@@ -101,9 +99,9 @@ public class BroadcastIAB extends IAB {
     }
 
     private void createIABReceiver() {
-        iabReceiver = new BroadcastReceiver() {
+        iabReceiver = new IABReceiverCommunicator() {
             @Override
-            public void onReceive(Context context, Intent intent) {
+            public void onNewBroadcastReceived(Intent intent) {
                 logger.logDebug("new message received in broadcast");
                 String action = intent.getAction();
                 if (action == null) {
@@ -198,15 +196,8 @@ public class BroadcastIAB extends IAB {
         return onConnectListenerWeakReference.get();
     }
 
-    private void registerBroadcast(Context context) {
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(receivePingAction);
-        intentFilter.addAction(receiveBillingSupport);
-        intentFilter.addAction(receivePurchaseAction);
-        intentFilter.addAction(receiveConsumeAction);
-        intentFilter.addAction(receiveGetPurchaseAction);
-        intentFilter.addAction(receiveSkuDetailAction);
-        context.registerReceiver(iabReceiver, intentFilter);
+    private void registerBroadcast() {
+        IABReceiver.addObserver(iabReceiver);
     }
 
     private void trySendPingToBazaar() {
@@ -344,11 +335,7 @@ public class BroadcastIAB extends IAB {
     void dispose(Context context) {
         super.dispose(context);
         if (iabReceiver != null) {
-            try {
-                context.unregisterReceiver(iabReceiver);
-            } catch (Exception e) {
-                logger.logDebug("Unregister broadcast cause an error " + e.getMessage());
-            }
+            IABReceiver.removeObserver(iabReceiver);
         }
         if (consumePurchaseLatch != null) {
             consumePurchaseLatch.abort();
