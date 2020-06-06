@@ -83,7 +83,7 @@ public class BroadcastIAB extends IAB {
                 versionCode = pInfo.versionCode;
             }
 
-            if (versionCode > 1) {
+            if (versionCode > 801301) {
                 createIABReceiver();
                 registerBroadcast();
                 trySendPingToBazaar();
