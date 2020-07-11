@@ -26,7 +26,6 @@ public class IABReceiver extends BroadcastReceiver {
     static void addObserver(IABReceiverCommunicator communicator) {
         synchronized (observerLock) {
             observers.add(communicator);
-
         }
     }
 

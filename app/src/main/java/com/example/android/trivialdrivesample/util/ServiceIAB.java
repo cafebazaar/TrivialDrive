@@ -62,7 +62,9 @@ public class ServiceIAB extends IAB {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
                 logger.logDebug("Billing service connected.");
-                if (disposed()) return;
+                if (disposed()) {
+                    return;
+                }
                 mSetupDone = true;
                 mService = IInAppBillingService.Stub.asInterface(service);
                 listener.connected();
@@ -71,7 +73,7 @@ public class ServiceIAB extends IAB {
         };
 
         Intent serviceIntent = new Intent("ir.cafebazaar.pardakht.InAppBillingService.BIND");
-        serviceIntent.setPackage("com.farsitel.bazaar");
+        serviceIntent.setPackage(BAZAAR_PACKAGE_NAME);
 
         PackageManager pm = context.getPackageManager();
         List<ResolveInfo> intentServices = pm.queryIntentServices(serviceIntent, 0);
@@ -125,7 +127,9 @@ public class ServiceIAB extends IAB {
             IabResult r = new IabResult(IABHELPER_SUBSCRIPTIONS_NOT_AVAILABLE,
                     "Subscriptions are not available.");
             flagEndAsync();
-            if (listener != null) listener.onIabPurchaseFinished(r, null);
+            if (listener != null) {
+                listener.onIabPurchaseFinished(r, null);
+            }
             return;
         }
 
@@ -148,14 +152,18 @@ public class ServiceIAB extends IAB {
             flagEndAsync();
 
             result = new IabResult(IABHELPER_SEND_INTENT_FAILED, "Failed to send intent.");
-            if (listener != null) listener.onIabPurchaseFinished(result, null);
+            if (listener != null) {
+                listener.onIabPurchaseFinished(result, null);
+            }
         } catch (RemoteException e) {
             logger.logError("RemoteException while launching purchase flow for sku " + sku);
             e.printStackTrace();
             flagEndAsync();
 
             result = new IabResult(IABHELPER_REMOTE_EXCEPTION, "Remote exception while starting purchase flow");
-            if (listener != null) listener.onIabPurchaseFinished(result, null);
+            if (listener != null) {
+                listener.onIabPurchaseFinished(result, null);
+            }
         }
     }
 
@@ -177,7 +185,9 @@ public class ServiceIAB extends IAB {
             logger.logError("Unable to buy item, Error response: " + getResponseDesc(response));
             flagEndAsync();
             IabResult result = new IabResult(response, "Unable to buy item");
-            if (listener != null) listener.onIabPurchaseFinished(result, null);
+            if (listener != null) {
+                listener.onIabPurchaseFinished(result, null);
+            }
             return;
         }
 
@@ -206,7 +216,9 @@ public class ServiceIAB extends IAB {
             logger.logError("Unable to buy item, Error response: " + getResponseDesc(response));
             flagEndAsync();
             IabResult result = new IabResult(response, "Unable to buy item");
-            if (listener != null) listener.onIabPurchaseFinished(result, null);
+            if (listener != null) {
+                listener.onIabPurchaseFinished(result, null);
+            }
             return;
         }
 

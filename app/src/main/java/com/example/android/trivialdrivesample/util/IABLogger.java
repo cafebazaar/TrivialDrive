@@ -8,7 +8,9 @@ public class IABLogger {
     String mDebugTag = "IabHelper";
 
     void logDebug(String msg) {
-        if (mDebugLog) Log.d(mDebugTag, msg);
+        if (mDebugLog) {
+            Log.d(mDebugTag, msg);
+        }
     }
 
     void logError(String msg) {

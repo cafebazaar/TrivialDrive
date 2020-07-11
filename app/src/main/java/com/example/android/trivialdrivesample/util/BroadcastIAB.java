@@ -33,6 +33,8 @@ public class BroadcastIAB extends IAB {
     private static final String bazaarBaseAction = "com.farsitel.bazaar.";
     private static final String bazaarPostAction = ".iab";
 
+    private static final int BAZAAR_VERSION_CODE_WITH_BROADCAST = 801301;
+
     public static final String pingAction = bazaarBaseAction + "ping";
     public static final String billingSupport = bazaarBaseAction + "billingSupport";
     public static final String purchaseAction = bazaarBaseAction + "purchase";
@@ -75,7 +77,7 @@ public class BroadcastIAB extends IAB {
     boolean connect(Context context, OnConnectListener listener) {
 
         try {
-            PackageInfo pInfo = context.getPackageManager().getPackageInfo("com.farsitel.bazaar", 0);
+            PackageInfo pInfo = context.getPackageManager().getPackageInfo(BAZAAR_PACKAGE_NAME, 0);
             int versionCode;
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
                 versionCode = (int) pInfo.getLongVersionCode();
@@ -83,7 +85,7 @@ public class BroadcastIAB extends IAB {
                 versionCode = pInfo.versionCode;
             }
 
-            if (versionCode > 801301) {
+            if (versionCode > BAZAAR_VERSION_CODE_WITH_BROADCAST) {
                 createIABReceiver();
                 registerBroadcast();
                 trySendPingToBazaar();
@@ -209,7 +211,7 @@ public class BroadcastIAB extends IAB {
     @NonNull
     private Intent getNewIntentForBroadcast() {
         Intent intent = new Intent();
-        String bazaarPackage = "com.farsitel.bazaar";
+        String bazaarPackage = BAZAAR_PACKAGE_NAME;
         intent.setPackage(bazaarPackage);
         Bundle bundle = new Bundle();
         bundle.putString(PACKAGE_NAME_KEY, context.getPackageName());
