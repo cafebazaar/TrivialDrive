@@ -77,7 +77,7 @@ public class ServiceIAB extends IAB {
 
         PackageManager pm = context.getPackageManager();
         List<ResolveInfo> intentServices = pm.queryIntentServices(serviceIntent, 0);
-        if (!intentServices.isEmpty()) {
+        if (intentServices != null && !intentServices.isEmpty()) {
             // service available to handle that Intent
             return context.bindService(serviceIntent, mServiceConn, Context.BIND_AUTO_CREATE);
         } else {
