@@ -289,7 +289,7 @@ public class BroadcastIAB extends IAB {
         skuDetailBundle = null;
 
         Intent intent = getNewIntentForBroadcast();
-        intent.setAction(purchaseAction);
+        intent.setAction(skuDetailAction);
         intent.putExtra(ITEM_TYPE_KEY, itemType);
         intent.putExtra(PACKAGE_NAME_KEY, packageName);
         intent.putExtra(API_VERSION_KEY, billingVersion);
