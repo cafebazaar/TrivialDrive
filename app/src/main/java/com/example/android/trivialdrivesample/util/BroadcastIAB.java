@@ -286,7 +286,7 @@ public class BroadcastIAB extends IAB {
     @Override
     public Bundle getSkuDetails(int billingVersion, String packageName, String itemType, Bundle querySkus) throws RemoteException {
 
-        getPurchaseBundle = null;
+        skuDetailBundle = null;
 
         Intent intent = getNewIntentForBroadcast();
         intent.setAction(purchaseAction);
@@ -311,7 +311,7 @@ public class BroadcastIAB extends IAB {
     @Override
     public Bundle getPurchases(int billingVersion, String packageName, String itemType, String continueToken) throws RemoteException {
 
-        skuDetailBundle = null;
+        getPurchaseBundle = null;
 
         Intent intent = getNewIntentForBroadcast();
         intent.setAction(getPurchaseAction);
